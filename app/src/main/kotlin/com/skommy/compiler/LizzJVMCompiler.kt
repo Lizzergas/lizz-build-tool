@@ -1,5 +1,6 @@
 package com.skommy.compiler
 
+import com.skommy.Constants
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
@@ -9,22 +10,20 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
-import java.util.jar.*
+import java.util.jar.Attributes
+import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
 
 class LizzJVMCompiler {
 
-    private val ktHome = System.getenv("KOTLIN_HOME")
-    private val stdLib = "$ktHome/lib/kotlin-stdlib.jar"
-
-    fun compileKotlin(
-        classPath: String
-    ): ExitCode {
+    fun compileKotlin(): ExitCode {
         println("Compiling Main.kt")
 
         val compiler = K2JVMCompiler()
         val args = compiler.createArguments().apply {
             destination = "lizz.jar"
-            classpath = stdLib
+            classpath = Constants.stdLib
             freeArgs = listOf("main.kt")
             disableStandardScript = true
             noStdlib = true
@@ -48,39 +47,40 @@ class LizzJVMCompiler {
         val manifest = Manifest().apply {
             mainAttributes[Attributes.Name.MANIFEST_VERSION] = "1.0"
             mainAttributes[Attributes.Name.MAIN_CLASS] = "MainKt"
-            mainAttributes[Attributes.Name.EXTENSION_NAME] = "Lizz Build Tool 0.1"
-            mainAttributes.putValue("Built-By", System.getProperty("user.name"))
-            mainAttributes.putValue("Class-Path", stdLib)
+            mainAttributes[Attributes.Name.EXTENSION_NAME] = "Lizz Buildd Tool 0.1"
+            mainAttributes[Attributes.Name.CLASS_PATH] = Constants.stdLib
+            mainAttributes.putValue("Built-By", Constants.currentUser)
         }
-        rewriteManifest(Paths.get("lizz.jar"), manifest)
+        appendManifestAttrs(Paths.get("lizz.jar"), manifest)
         println("Updated manifest")
     }
 
-    fun rewriteManifest(jarPath: Path, manifest: Manifest) {
-//        val tmp2 = Files.createTempFile("lizz", ".jar")
-        val tmp = Files.createFile(Path.of("lizz-temp.jar"))
-
-        JarFile(jarPath.toFile()).use { src ->
-            JarOutputStream(Files.newOutputStream(tmp), manifest).use { out ->
-                // copy every entry *except* the old manifest
-                val buffer = ByteArray(16 * 1024)
-                src.entries().asSequence()
-                    .filterNot { it.name == JarFile.MANIFEST_NAME }
-                    .forEach { entry ->
-                        out.putNextEntry(JarEntry(entry.name).apply {
-                            time = entry.time
-                            size = entry.size
-                            crc = entry.crc
-                            method = entry.method
-                        })
-                        src.getInputStream(entry).use { inp ->
-                            var n: Int
-                            while (inp.read(buffer).also { n = it } != -1) out.write(buffer, 0, n)
-                        }
-                        out.closeEntry()
-                    }
+    fun appendManifestAttrs(jarPath: Path, additions: Manifest) {
+        JarFile(jarPath.toFile()).use { jar ->
+            val tmp = Files.createTempFile("lizz-add-manifest-temp-", ".jar")
+            val newManifest = jar.manifest.apply {
+                for ((k, v) in additions.mainAttributes) {
+                    val key = k as? Attributes.Name ?: continue
+                    val value = v as? String ?: continue
+                    this.mainAttributes[key] = value
+                }
             }
+
+            Files.newOutputStream(tmp).use { outStream ->
+                JarOutputStream(outStream, newManifest).use { jarOut ->
+                    jar.entries().asSequence()
+                        .filter { it.name != JarFile.MANIFEST_NAME }
+                        .forEach { entry ->
+                            jarOut.putNextEntry(entry)
+                            jar.getInputStream(entry).use { input ->
+                                input.copyTo(jarOut)
+                            }
+                            jarOut.closeEntry()
+                        }
+                }
+            }
+
+            Files.move(tmp, jarPath, StandardCopyOption.REPLACE_EXISTING)
         }
-        Files.move(tmp, jarPath, StandardCopyOption.REPLACE_EXISTING)
     }
 }

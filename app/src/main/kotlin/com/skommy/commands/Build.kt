@@ -8,11 +8,10 @@ import java.io.File
 class Build : CliktCommand() {
     override fun run() {
         val mainKt = File("main.kt")
-        val classPath = System.getProperty("java.class.path")
         val compiler = LizzJVMCompiler()
 
         if (mainKt.exists()) {
-            val exit = compiler.compileKotlin(classPath)
+            val exit = compiler.compileKotlin()
             if (exit == ExitCode.OK) {
                 compiler.updateJarManifest()
             }

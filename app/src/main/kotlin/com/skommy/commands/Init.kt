@@ -2,12 +2,10 @@ package com.skommy.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.terminal
-import com.github.ajalt.clikt.parameters.options.help
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.mordant.rendering.TextColors
-import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.prompt
+import com.skommy.Constants
 import com.skommy.getCurrentFolderName
+import com.skommy.gradle.GradleBuild
 import com.skommy.yaml.YamlWriter
 import com.skommy.yaml.buildSettings
 import java.io.File
@@ -57,5 +55,7 @@ class Init : CliktCommand() {
         """.trimIndent()
         val mainKt = File("main.kt")
         mainKt.writeText(helloWorld)
+        GradleBuild.stubGradleSetup(Constants.ktHome.orEmpty())
+        GradleBuild.syncGradleStub(listOf())
     }
 }

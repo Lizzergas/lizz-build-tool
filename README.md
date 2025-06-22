@@ -8,6 +8,8 @@ brew install kotlin
 ```bash
 # Sets KOTLIN_HOME that is used by the build tool to the aliases
 echo 'export KOTLIN_HOME="/opt/homebrew/Cellar/kotlin/2.1.21/libexec:$KOTLIN_HOME"' >> ~/.zshrc
+
+# Note: when this is set, don't forget to restart your Intellij or other editor that has in-built terminal to update system environment variables
 ```
 
 ```bash
