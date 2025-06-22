@@ -14,6 +14,7 @@ data class BuildSettings(
 data class ProjectSettings(
     val name: String,
     val version: String,
+    val author: String,
     val mainClass: String,
 )
 
@@ -25,12 +26,13 @@ data class KotlinSettings(
 fun buildSettings(
     projectName: String,
     projectVersion: String,
+    author: String,
     mainClass: String,
     kotlinVersion: String,
     dependencies: List<String>
 ): BuildSettings {
     return BuildSettings(
-        project = ProjectSettings(projectName, projectVersion, mainClass),
+        project = ProjectSettings(projectName, projectVersion, author = author,mainClass),
         kotlin = KotlinSettings(kotlinVersion),
         dependencies = dependencies
     )

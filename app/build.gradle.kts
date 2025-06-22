@@ -27,6 +27,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.yaml)
     implementation(libs.ajalt.clikt)
 
+    // Compiler
+    implementation(libs.kotlin.compiler.embeddable)
+
     // Test
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation(libs.junit.jupiter.engine)

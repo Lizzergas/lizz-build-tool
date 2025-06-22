@@ -12,6 +12,8 @@ ajalt-clikt = "5.0.1"
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter-engine" }
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization"}
 kotlinx-serialization-yaml = { group = "com.charleskorn.kaml", name = "kaml", version.ref = "kaml"}
+kotlin-compiler-embeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin"}
+kotlin-compiler-stdlib = {group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin"}
 ajalt-clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "ajalt.clikt"}
 
 [plugins]
