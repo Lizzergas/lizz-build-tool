@@ -23,6 +23,7 @@ class Init : CliktCommand() {
             default = getCurrentFolderName(),
             showDefault = true
         )
+
         val version = terminal.prompt(
             prompt = "Version:",
             default = BuildConstants.PROJECT_VERSION,

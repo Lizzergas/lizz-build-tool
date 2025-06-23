@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
@@ -27,7 +28,7 @@ class LizzJVMCompiler(
         val args = compiler.createArguments().apply {
             destination = jarPath
             classpath = CompilerConstants.stdLib
-            freeArgs = listOf("main.kt")
+            freeArgs = findKotlinFilesTwo()
             disableStandardScript = true
             noStdlib = true
             noReflect = true
@@ -83,5 +84,20 @@ class LizzJVMCompiler(
             Files.move(tmp, jarFile, StandardCopyOption.REPLACE_EXISTING)
         }
         println("Updated manifest")
+    }
+
+    private fun findKotlinFilesTwo(): List<String> {
+        val root = Paths.get(".").toAbsolutePath().normalize()
+        return Files.walk(root)
+            .filter { path ->
+                path.toString().endsWith(".kt") &&
+                        !path.startsWith(root.resolve(CompilerConstants.buildFolder)) &&
+                        !path.toString().contains("gradle/wrapper") &&
+                        !path.fileName.toString().endsWith(".gradle.kts") &&
+                        path.fileName.toString() != "settings.gradle.kts"
+            }
+            .map { root.relativize(it).toString() }
+            .onClose { /* Files.walk uses a stream that must be closed */ }
+            .toList()
     }
 }
