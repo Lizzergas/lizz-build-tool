@@ -11,5 +11,4 @@ plugins {
 }
 
 rootProject.name = "lizz-build-tool"
-rootProject
 include("app")

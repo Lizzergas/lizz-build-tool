@@ -9,7 +9,9 @@ import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.skommy.commands.Build
+import com.skommy.commands.Clean
 import com.skommy.commands.Init
+import com.skommy.commands.Run
 
 
 class Lizz : CliktCommand(name = "lizz") {
@@ -21,5 +23,5 @@ class Lizz : CliktCommand(name = "lizz") {
 }
 
 fun main(args: Array<String>) = Lizz()
-    .subcommands(Init(), Build())
+    .subcommands(Init(), Build(), Run(), Clean())
     .main(args)

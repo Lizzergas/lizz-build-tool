@@ -14,10 +14,11 @@ plugins {
     application
 }
 
-version = "0.0.1"
+version = "0.0.1-alpha"
+group = "com.skommy"
+description = "Lightweight and simple JVM-only Kotlin build tool"
 
 repositories {
-    // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
 
@@ -46,6 +47,8 @@ java {
 application {
     // Define the main class for the application.
     mainClass = "com.skommy.MainKt"
+    executableDir = "bin"
+    applicationName = "lizz"
 }
 
 tasks.named<Test>("test") {
@@ -54,7 +57,7 @@ tasks.named<Test>("test") {
 }
 
 tasks.register("generateBuildConfig") {
-    group = "Lizz Tasks"
+    group = "lizz Tasks"
     description = "Generate build config with preconfigured values"
 
     val generatedDir = layout.buildDirectory.dir("generated/buildconfig")
@@ -80,4 +83,16 @@ tasks.named("compileKotlin") {
 
 kotlin.sourceSets.main {
     kotlin.srcDir(layout.buildDirectory.dir("generated/buildconfig"))
+}
+
+tasks.register<Sync>("devDist") {
+    group       = "lizz tasks"
+    description = "Installs binary to \$HOME/.local/lizz"
+
+    dependsOn(tasks.named("installDist"))
+
+    from(layout.buildDirectory.dir("install/${project.application.applicationName}"))
+    into(providers.environmentVariable("HOME").map { "$it/.local/lizz" })
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

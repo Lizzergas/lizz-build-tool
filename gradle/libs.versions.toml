@@ -7,6 +7,7 @@ kotlin = "2.1.20"
 kotlinx-serialization = "1.8.1"
 kaml = "0.82.0"
 ajalt-clikt = "5.0.1"
+jreleaser = "1.18.0"
 
 [libraries]
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter-engine" }
@@ -19,4 +20,5 @@ ajalt-clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser"}
 
