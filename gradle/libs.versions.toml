@@ -8,17 +8,43 @@ kotlinx-serialization = "1.8.1"
 kaml = "0.82.0"
 ajalt-clikt = "5.0.1"
 jreleaser = "1.18.0"
+maven-resolver = "2.0.9"
 
 [libraries]
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter-engine" }
-kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization"}
-kotlinx-serialization-yaml = { group = "com.charleskorn.kaml", name = "kaml", version.ref = "kaml"}
-kotlin-compiler-embeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin"}
-kotlin-compiler-stdlib = {group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin"}
-ajalt-clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "ajalt.clikt"}
+kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-yaml = { group = "com.charleskorn.kaml", name = "kaml", version.ref = "kaml" }
+kotlin-compiler-embeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
+kotlin-compiler-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+ajalt-clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "ajalt.clikt" }
+
+# Resolver API + Implementation
+maven-resolver-api = { group = "org.apache.maven.resolver", name = "maven-resolver-api", version.ref = "maven-resolver" }
+maven-resolver-spi = { group = "org.apache.maven.resolver", name = "maven-resolver-spi", version.ref = "maven-resolver" }
+maven-resolver-util = { group = "org.apache.maven.resolver", name = "maven-resolver-util", version.ref = "maven-resolver" }
+maven-resolver-impl = { group = "org.apache.maven.resolver", name = "maven-resolver-impl", version.ref = "maven-resolver" }
+
+# Basic Connector + Transport (HTTP/File/JDK)
+maven-resolver-connector-basic = { group = "org.apache.maven.resolver", name = "maven-resolver-connector-basic", version.ref = "maven-resolver" }
+maven-resolver-transport-jdk = { group = "org.apache.maven.resolver", name = "maven-resolver-transport-jdk", version.ref = "maven-resolver" }
+
+# Supplier Bootstrap (might be the only dependency I need to include the resolver)
+maven-resolver-supplier-mvn4 = { group = "org.apache.maven.resolver", name = "maven-resolver-supplier-mvn4", version.ref = "maven-resolver"}
+
+
+[bundles]
+maven-resolver = [
+    "maven-resolver-api",
+    "maven-resolver-spi",
+    "maven-resolver-util",
+    "maven-resolver-impl",
+    "maven-resolver-connector-basic",
+    "maven-resolver-transport-jdk",
+    "maven-resolver-supplier-mvn4"
+]
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
-jreleaser = { id = "org.jreleaser", version.ref = "jreleaser"}
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
 

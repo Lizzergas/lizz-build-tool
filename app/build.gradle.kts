@@ -28,6 +28,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.yaml)
     implementation(libs.ajalt.clikt)
 
+    // Maven Resolver
+    implementation(libs.bundles.maven.resolver)
+
     // Compiler
     implementation(libs.kotlin.compiler.embeddable)
 

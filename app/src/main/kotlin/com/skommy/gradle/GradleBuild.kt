@@ -8,7 +8,7 @@ object GradleBuild {
         // Temporary solution to support Auto-complete in Intellij before BSP support is added
         // build.gradle.kts  (generated — do not edit)
         plugins {
-            id("org.jetbrains.kotlin.jvm") version "2.1.21"
+            id("org.jetbrains.kotlin.jvm") version "%KOTLIN_VERSION%"
         }
 
         repositories { mavenCentral() }
@@ -33,13 +33,13 @@ object GradleBuild {
         tasks.register<Exec>("lizz-build") {
             group = "lizz-build-tool"
             description = "Compile Kotlin JVM and output a runnable JAR file"
-            commandLine("./app", "build")      // delegates to your tool
+            commandLine("lizz", "build")
         }    
         
         tasks.register<Exec>("lizz-run") {
             group = "lizz-build-tool"
             description = "Compile Kotlin JVM and output a runnable JAR file"
-            commandLine("java", "-jar", "lizz.jar")      // delegates to your tool
+            commandLine("lizz", "run")
         }    
     """.trimIndent()
 
@@ -54,7 +54,7 @@ object GradleBuild {
         println("Generated settings.gradle.kts and build.gradle.kts")
     }
 
-    fun syncGradleStub(resolvedJars: List<File>) {
+    fun syncGradleStub(resolvedJars: List<File>, kotlinVersion: String) {
         val buildFile = File("build.gradle.kts")
 
         if (buildFile.exists()) {
@@ -71,6 +71,7 @@ object GradleBuild {
             }
 
             buildFile.writeText(content.replace("%DEPENDENCY_LINES%", depsBlock))
+            buildFile.writeText(content.replace("%KOTLIN_VERSION%", kotlinVersion))
         }
         println("Synced and resolved dependencies successfully!")
     }

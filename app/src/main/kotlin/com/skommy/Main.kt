@@ -12,6 +12,7 @@ import com.skommy.commands.Build
 import com.skommy.commands.Clean
 import com.skommy.commands.Init
 import com.skommy.commands.Run
+import com.skommy.commands.Sync
 
 
 class Lizz : CliktCommand(name = "lizz") {
@@ -23,5 +24,5 @@ class Lizz : CliktCommand(name = "lizz") {
 }
 
 fun main(args: Array<String>) = Lizz()
-    .subcommands(Init(), Build(), Run(), Clean())
+    .subcommands(Init(), Build(), Run(), Clean(), Sync())
     .main(args)

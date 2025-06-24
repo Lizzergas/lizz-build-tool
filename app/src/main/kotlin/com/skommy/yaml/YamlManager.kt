@@ -10,22 +10,19 @@ private const val DEFAULT_YAML_NAME = "lizz.yaml"
 
 class YamlManager {
     companion object {
-        fun save(settings: BuildSettings) {
-            val file = File(DEFAULT_YAML_NAME)
-            val result = Yaml.default.encodeToString(settings)
-            file.writeText(result)
-            println("Yaml saved to lizz.yaml")
+
+        fun save(settings: BuildSettings, file: File = File(DEFAULT_YAML_NAME)) {
+            val yamlText = Yaml.default.encodeToString(settings)
+            file.writeText(yamlText)
+            println("Yaml saved to ${file.absolutePath}")
         }
 
-        fun load(): BuildSettings {
-            val file = File(DEFAULT_YAML_NAME)
-            val result = Yaml.default.decodeFromStream<BuildSettings>(stream = Files.newInputStream(file.toPath()))
-            return result
-        }
+        fun load(): BuildSettings = load(File(DEFAULT_YAML_NAME))
 
-        fun exists(): Boolean {
-            val file = File(DEFAULT_YAML_NAME)
-            return file.exists()
-        }
+        fun load(file: File): BuildSettings =
+            Yaml.default.decodeFromStream(Files.newInputStream(file.toPath()))
+
+        fun exists(dir: File = File(".")): Boolean =
+            File(dir, DEFAULT_YAML_NAME).exists()
     }
 }

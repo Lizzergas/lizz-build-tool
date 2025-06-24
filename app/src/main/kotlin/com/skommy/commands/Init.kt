@@ -59,6 +59,6 @@ class Init : CliktCommand() {
         val mainKt = File("main.kt")
         mainKt.writeText(helloWorld)
         GradleBuild.stubGradleSetup(CompilerConstants.ktHome.orEmpty())
-        GradleBuild.syncGradleStub(listOf())
+        GradleBuild.syncGradleStub(listOf(), settings.kotlin.version)
     }
 }
