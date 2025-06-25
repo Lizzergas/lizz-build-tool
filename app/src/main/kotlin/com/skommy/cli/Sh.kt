@@ -10,15 +10,15 @@ class Sh : LizzCommand() {
 
     override fun runCommand() {
         val settings = BuildSettingsService.load(yamlFile())
-//        val scripts = settings.scripts
-//
-//        if (name == null) {
-//            // Print all available scripts
-//            printAvailableScripts(scripts)
-//        } else {
-//            // Execute the specified script
-//            executeScript(name!!, scripts)
-//        }
+        val scripts = settings.scripts
+
+        if (name == null) {
+            // Print all available scripts
+            printAvailableScripts(scripts)
+        } else {
+            // Execute the specified script
+            executeScript(name!!, scripts)
+        }
     }
 
     private fun printAvailableScripts(scripts: Map<String, Script>) {
@@ -32,11 +32,6 @@ class Sh : LizzCommand() {
             when (script) {
                 is Script.SimpleScript -> {
                     println("  $key: ${script.command}")
-                }
-
-                is Script.DetailedScript -> {
-                    println("  $key: ${script.description}")
-                    println("    Command: ${script.command}")
                 }
             }
         }

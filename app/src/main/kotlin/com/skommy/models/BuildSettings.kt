@@ -1,15 +1,21 @@
 package com.skommy.models
 
 import com.skommy.BuildConstants
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 @Serializable
 data class BuildSettings(
     @SerialName("project") val project: ProjectSettings,
     @SerialName("kotlin") val kotlin: KotlinSettings,
     @SerialName("dependencies") val dependencies: List<String>,
-//    @SerialName("scripts") val scripts: Map<String, Script>,
+    @SerialName("scripts") val scripts: Map<String, Script>,
 )
 
 @Serializable
@@ -26,18 +32,26 @@ data class KotlinSettings(
     val version: String,
 )
 
-@Serializable
-sealed class Script {
-    abstract val command: String
+@Serializable(with = ScriptSerializer::class)
+sealed class Script(
+    open val command: String
+) {
+    data class SimpleScript(
+        override val command: String
+    ) : Script(command)
+}
 
-    @Serializable
-    data class SimpleScript(override val command: String) : Script()
+object ScriptSerializer : KSerializer<Script> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Script", PrimitiveKind.STRING)
 
-    @Serializable
-    data class DetailedScript(
-        @SerialName("src") override val command: String,
-        @SerialName("desc") val description: String
-    ) : Script()
+    override fun serialize(encoder: Encoder, value: Script) {
+        encoder.encodeString(value.command)
+    }
+
+    override fun deserialize(decoder: Decoder): Script {
+        val command = decoder.decodeString()
+        return Script.SimpleScript(command)
+    }
 }
 
 
@@ -61,10 +75,9 @@ fun buildSettings(
         ),
         kotlin = KotlinSettings(version = kotlinVersion),
         dependencies = dependencies,
-//        scripts = scripts,
+        scripts = scripts,
     )
 }
 
 // Convenience functions for creating scripts
 fun simpleScript(command: String): Script = Script.SimpleScript(command)
-fun detailedScript(command: String, description: String): Script = Script.DetailedScript(command, description)
