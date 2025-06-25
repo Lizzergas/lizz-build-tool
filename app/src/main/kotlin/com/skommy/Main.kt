@@ -8,11 +8,11 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.versionOption
-import com.skommy.commands.Build
-import com.skommy.commands.Clean
-import com.skommy.commands.Init
-import com.skommy.commands.Run
-import com.skommy.commands.Sync
+import com.skommy.cli.Build
+import com.skommy.cli.Clean
+import com.skommy.cli.Init
+import com.skommy.cli.Run
+import com.skommy.cli.Sync
 
 
 class Lizz : CliktCommand(name = "lizz") {

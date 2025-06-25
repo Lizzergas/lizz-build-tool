@@ -1,4 +1,4 @@
-package com.skommy.yaml
+package com.skommy.models
 
 import com.skommy.BuildConstants
 import kotlinx.serialization.SerialName
@@ -17,7 +17,7 @@ data class ProjectSettings(
     val version: String,
     val author: String,
     val description: String = "",
-    val mainClass: String = BuildConstants.MAIN_KT,
+    val mainClass: String = BuildConstants.MAIN_KT_CLASS,
 )
 
 @Serializable
@@ -30,7 +30,7 @@ fun buildSettings(
     version: String,
     description: String = "",
     author: String,
-    mainClass: String = BuildConstants.MAIN_KT,
+    mainClass: String = BuildConstants.MAIN_KT_CLASS,
     kotlinVersion: String = BuildConstants.KOTLIN_VERSION,
     dependencies: List<String>
 ): BuildSettings {

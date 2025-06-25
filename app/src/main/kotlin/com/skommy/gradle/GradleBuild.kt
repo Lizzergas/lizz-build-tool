@@ -73,6 +73,5 @@ object GradleBuild {
             buildFile.writeText(content.replace("%DEPENDENCY_LINES%", depsBlock))
             buildFile.writeText(content.replace("%KOTLIN_VERSION%", kotlinVersion))
         }
-        println("Synced and resolved dependencies successfully!")
     }
 }

@@ -1,4 +1,4 @@
-package com.skommy.commands
+package com.skommy.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.terminal
@@ -7,14 +7,14 @@ import com.skommy.BuildConstants
 import com.skommy.CompilerConstants
 import com.skommy.getCurrentFolderName
 import com.skommy.gradle.GradleBuild
-import com.skommy.yaml.YamlManager
-import com.skommy.yaml.buildSettings
+import com.skommy.models.buildSettings
+import com.skommy.services.YamlService
 import java.io.File
 
 class Init : CliktCommand() {
     override fun run() {
-        if (YamlManager.exists()) {
-            echo("lizz.yaml already exists", err = true)
+        if (YamlService.exists()) {
+            echo("${BuildConstants.CONFIG_FILE} already exists", err = true)
             currentContext.exitProcess(1)
         }
 
@@ -47,18 +47,37 @@ class Init : CliktCommand() {
             version = version.orEmpty(),
             description = description.orEmpty(),
             author = author.orEmpty(),
-            dependencies = listOf("guava", "gson", "okio"),
+            dependencies = listOf("com.google.code.gson:gson:2.10.1"),
         )
-        YamlManager.save(settings)
+        YamlService.save(settings)
 
         val helloWorld = """
+            import com.google.gson.Gson
+            
+            data class Person(val name: String, val age: Int)
+            
             fun main() {
                 println("Hello world!")
+                
+                    // Test Gson
+                    val gson = Gson()
+                    val person = Person("John Doe", 30)
+                    val json = gson.toJson(person)
+                    println(json)
             }
         """.trimIndent()
-        val mainKt = File("main.kt")
+        val mainKt = File(BuildConstants.MAIN_KT)
         mainKt.writeText(helloWorld)
-        GradleBuild.stubGradleSetup(CompilerConstants.ktHome.orEmpty())
+        GradleBuild.stubGradleSetup(CompilerConstants.getKotlinHome())
         GradleBuild.syncGradleStub(listOf(), settings.kotlin.version)
+
+        val gitIgnore = File(".gitignore")
+        gitIgnore.writeText(
+            """
+            settings.gradle.kts
+            build.gradle.kts
+            build/
+        """.trimIndent()
+        )
     }
 }
