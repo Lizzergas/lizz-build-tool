@@ -12,6 +12,7 @@ import com.skommy.cli.Build
 import com.skommy.cli.Clean
 import com.skommy.cli.Init
 import com.skommy.cli.Run
+import com.skommy.cli.Sh
 import com.skommy.cli.Sync
 
 
@@ -24,5 +25,5 @@ class Lizz : CliktCommand(name = "lizz") {
 }
 
 fun main(args: Array<String>) = Lizz()
-    .subcommands(Init(), Build(), Run(), Clean(), Sync())
+    .subcommands(Init(), Build(), Run(), Clean(), Sync(), Sh())
     .main(args)

@@ -9,6 +9,7 @@ data class BuildSettings(
     @SerialName("project") val project: ProjectSettings,
     @SerialName("kotlin") val kotlin: KotlinSettings,
     @SerialName("dependencies") val dependencies: List<String>,
+//    @SerialName("scripts") val scripts: Map<String, Script>,
 )
 
 @Serializable
@@ -25,6 +26,21 @@ data class KotlinSettings(
     val version: String,
 )
 
+@Serializable
+sealed class Script {
+    abstract val command: String
+
+    @Serializable
+    data class SimpleScript(override val command: String) : Script()
+
+    @Serializable
+    data class DetailedScript(
+        @SerialName("src") override val command: String,
+        @SerialName("desc") val description: String
+    ) : Script()
+}
+
+
 fun buildSettings(
     name: String,
     version: String,
@@ -32,7 +48,8 @@ fun buildSettings(
     author: String,
     mainClass: String = BuildConstants.MAIN_KT_CLASS,
     kotlinVersion: String = BuildConstants.KOTLIN_VERSION,
-    dependencies: List<String>
+    dependencies: List<String>,
+    scripts: Map<String, Script> = emptyMap(),
 ): BuildSettings {
     return BuildSettings(
         project = ProjectSettings(
@@ -43,6 +60,11 @@ fun buildSettings(
             mainClass = mainClass
         ),
         kotlin = KotlinSettings(version = kotlinVersion),
-        dependencies = dependencies
+        dependencies = dependencies,
+//        scripts = scripts,
     )
 }
+
+// Convenience functions for creating scripts
+fun simpleScript(command: String): Script = Script.SimpleScript(command)
+fun detailedScript(command: String, description: String): Script = Script.DetailedScript(command, description)

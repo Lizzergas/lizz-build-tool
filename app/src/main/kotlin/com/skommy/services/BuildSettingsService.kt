@@ -8,7 +8,7 @@ import kotlinx.serialization.encodeToString
 import java.io.File
 import java.nio.file.Files
 
-class YamlService {
+class BuildSettingsService {
     companion object {
 
         /**
@@ -24,21 +24,11 @@ class YamlService {
         }
 
         /**
-         * Loads BuildSettings from lizz.yaml in the specified project root directory.
-         * @param projectRoot The project root directory (defaults to current directory for backward compatibility)
-         * @return The loaded BuildSettings
-         */
-        fun load(projectRoot: File = File(".")): BuildSettings {
-            val file = File(projectRoot, BuildConstants.CONFIG_FILE)
-            return loadFromFile(file)
-        }
-
-        /**
          * Loads BuildSettings from the specified file.
          * @param file The file to load from
          * @return The loaded BuildSettings
          */
-        fun loadFromFile(file: File): BuildSettings =
+        fun load(file: File): BuildSettings =
             Yaml.Companion.default.decodeFromStream(Files.newInputStream(file.toPath()))
 
         /**

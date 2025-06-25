@@ -9,7 +9,7 @@ import java.io.File
  * Service responsible for managing project dependencies.
  * Handles resolution, caching, and providing dependency information.
  */
-class DependencyService(private val projectRoot: File = File(System.getProperty("user.dir"))) {
+class DependencyResolverService(private val projectRoot: File = File(System.getProperty("user.dir"))) {
     private val dependenciesFile = File(projectRoot, "${CompilerConstants.buildFolder}/dependencies.txt")
     private val mavenResolver = MavenResolver(projectRoot)
 

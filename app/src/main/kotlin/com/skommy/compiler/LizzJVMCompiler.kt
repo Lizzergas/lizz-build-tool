@@ -2,7 +2,7 @@ package com.skommy.compiler
 
 import com.skommy.CompilerConstants
 import com.skommy.models.BuildSettings
-import com.skommy.services.DependencyService
+import com.skommy.services.DependencyResolverService
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
@@ -22,10 +22,10 @@ class LizzJVMCompiler(
     private val projectRoot: File = File(System.getProperty("user.dir"))
 ) {
     val jarPath = File(projectRoot, "${CompilerConstants.buildFolder}/${settings.project.name}.jar").absolutePath
-    private val dependencyService = DependencyService(projectRoot)
+    private val dependencyResolverService = DependencyResolverService(projectRoot)
 
     private fun buildClasspath(): String {
-        return dependencyService.getCompilationClasspath().joinToString(File.pathSeparator)
+        return dependencyResolverService.getCompilationClasspath().joinToString(File.pathSeparator)
     }
 
     fun compileKotlin(): ExitCode {
@@ -92,7 +92,7 @@ class LizzJVMCompiler(
 
         // For fat JAR, we don't need external classpath entries since everything is included
         // But we keep this for compatibility if someone wants to use external JARs
-        val resolvedDeps = dependencyService.getCachedDependencies()
+        val resolvedDeps = dependencyResolverService.getCachedDependencies()
         resolvedDeps.map { File(it).name }.forEach { classpaths.add(it) }
 
         return classpaths.joinToString(" ")
@@ -127,7 +127,7 @@ class LizzJVMCompiler(
                 }
 
                 // Add all resolved dependencies
-                val resolvedDeps = dependencyService.getCachedDependencies()
+                val resolvedDeps = dependencyResolverService.getCachedDependencies()
                 resolvedDeps
                     .map { File(it) }
                     .filter { it.exists() && it.extension == "jar" }

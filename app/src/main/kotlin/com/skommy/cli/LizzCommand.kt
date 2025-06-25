@@ -77,7 +77,7 @@ abstract class LizzCommand : CliktCommand() {
      * Helper method to get the lizz.yaml file in the project root.
      * @return File object pointing to lizz.yaml
      */
-    protected fun lizzYamlFile(): File {
+    protected fun yamlFile(): File {
         return rootFile(BuildConstants.CONFIG_FILE)
     }
 

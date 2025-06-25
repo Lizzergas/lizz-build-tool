@@ -1,7 +1,8 @@
 package com.skommy.cli
 
+import com.github.ajalt.clikt.core.Context
 import com.skommy.CompilerConstants
-import com.skommy.services.YamlService
+import com.skommy.services.BuildSettingsService
 import java.io.IOException
 
 /**
@@ -9,10 +10,11 @@ import java.io.IOException
  * Uses LizzCommand base class for automatic project root detection.
  */
 class Run : LizzCommand() {
+    override fun help(context: Context): String = "Looks for .jar in build folder and runs it"
     override fun runCommand() {
         try {
             // Load settings from the located YAML file (root is guaranteed to be initialized)
-            val settings = YamlService.loadFromFile(lizzYamlFile())
+            val settings = BuildSettingsService.load(yamlFile())
 
             // Build absolute path to the compiled jar using helper method
             val jarFile = rootFile("${CompilerConstants.buildFolder}/${settings.project.name}.jar")
