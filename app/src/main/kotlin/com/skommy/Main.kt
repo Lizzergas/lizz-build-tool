@@ -4,26 +4,32 @@
 package com.skommy
 
 import BuildConfig
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.main
-import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.versionOption
-import com.skommy.cli.Build
-import com.skommy.cli.Clean
-import com.skommy.cli.Init
-import com.skommy.cli.Run
-import com.skommy.cli.Sh
-import com.skommy.cli.Sync
+import com.skommy.cli.*
 
+class Log(private val currentContext: Context) {
+    fun println(message: String, err: Boolean = false) {
+        currentContext.echoMessage(currentContext, message, false, err)
+    }
+
+    fun print(message: String, err: Boolean = false) {
+        currentContext.echoMessage(currentContext, message, false, err)
+    }
+}
 
 class Lizz : CliktCommand(name = "lizz") {
     init {
         versionOption(version = BuildConfig.VERSION)
     }
 
-    override fun run() = Unit
+    override fun run() {
+        currentContext.obj = Log(currentContext)
+    }
 }
 
-fun main(args: Array<String>) = Lizz()
-    .subcommands(Init(), Build(), Run(), Clean(), Sync(), Sh())
-    .main(args)
+fun main(args: Array<String>) {
+    Lizz()
+        .subcommands(Init(), Build(), Run(), Clean(), Sync(), Sh())
+        .main(args)
+}
