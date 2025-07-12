@@ -6,6 +6,11 @@ brew install kotlin
 ```
 
 ```bash
+# Option 1: Automated setup (recommended)
+# Use the provided script to automatically set KOTLIN_HOME with the latest brew version
+./scripts/setup-kotlin-home.sh
+
+# Option 2: Manual setup
 # Sets KOTLIN_HOME that is used by the build tool to the aliases
 echo 'export KOTLIN_HOME="/opt/homebrew/Cellar/kotlin/2.1.21/libexec:$KOTLIN_HOME"' >> ~/.zshrc
 echo 'export PATH="$HOME/.local/lizz/bin:$PATH"' >> ~/.zshrc

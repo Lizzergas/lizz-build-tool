@@ -3,8 +3,99 @@
  */
 package com.skommy
 
-import kotlin.test.Test
-import kotlin.test.assertNotNull
+import com.skommy.models.buildSettings
+import com.skommy.models.simpleScript
+import com.skommy.services.BuildSettingsService
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.io.TempDir
+import java.io.File
+import java.nio.file.Path
 
 class AppTest {
+
+    @TempDir
+    lateinit var tempDir: Path
+
+    private lateinit var testDir: File
+
+    @BeforeEach
+    fun setUp() {
+        testDir = tempDir.toFile()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        // Clean up any test files
+        val configFile = File(testDir, "lizz.yaml")
+        if (configFile.exists()) {
+            configFile.delete()
+        }
+    }
+
+    @Test
+    fun `test BuildSettingsService save and load functionality`() {
+        println("[DEBUG_LOG] Testing BuildSettingsService save and load functionality")
+
+        // Create test build settings
+        val originalSettings = buildSettings(
+            name = "test-project",
+            version = "1.0.0",
+            description = "A test project",
+            author = "Test Author",
+            dependencies = listOf("com.google.code.gson:gson:2.10.1", "org.junit.jupiter:junit-jupiter:5.8.2"),
+            scripts = mapOf(
+                "test" to simpleScript("./gradlew test"),
+                "build" to simpleScript("./gradlew build")
+            )
+        )
+
+        // Test save functionality
+        assertFalse(BuildSettingsService.exists(testDir), "Config file should not exist initially")
+
+        BuildSettingsService.save(originalSettings, testDir)
+
+        assertTrue(BuildSettingsService.exists(testDir), "Config file should exist after save")
+
+        // Test load functionality
+        val configFile = File(testDir, "lizz.yaml")
+        val loadedSettings = BuildSettingsService.load(configFile)
+
+        // Verify loaded settings match original
+        assertEquals(originalSettings.project.name, loadedSettings.project.name)
+        assertEquals(originalSettings.project.version, loadedSettings.project.version)
+        assertEquals(originalSettings.project.description, loadedSettings.project.description)
+        assertEquals(originalSettings.project.author, loadedSettings.project.author)
+        assertEquals(originalSettings.kotlin.version, loadedSettings.kotlin.version)
+        assertEquals(originalSettings.dependencies, loadedSettings.dependencies)
+        assertEquals(originalSettings.scripts.size, loadedSettings.scripts.size)
+
+        println("[DEBUG_LOG] BuildSettingsService test completed successfully")
+    }
+
+    @Test
+    fun `test buildSettings helper function`() {
+        println("[DEBUG_LOG] Testing buildSettings helper function")
+
+        val settings = buildSettings(
+            name = "helper-test",
+            version = "2.0.0",
+            author = "Helper Author",
+            dependencies = listOf("org.jetbrains.kotlin:kotlin-stdlib:1.8.0")
+        )
+
+        assertNotNull(settings)
+        assertEquals("helper-test", settings.project.name)
+        assertEquals("2.0.0", settings.project.version)
+        assertEquals("Helper Author", settings.project.author)
+        assertEquals("", settings.project.description) // default value
+        assertEquals(BuildConstants.MAIN_KT_CLASS, settings.project.mainClass) // default value
+        assertEquals(BuildConstants.KOTLIN_VERSION, settings.kotlin.version) // default value
+        assertEquals(1, settings.dependencies.size)
+        assertTrue(settings.scripts.isEmpty()) // default value
+
+        println("[DEBUG_LOG] buildSettings helper function test completed successfully")
+    }
 }
