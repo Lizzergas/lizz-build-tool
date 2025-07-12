@@ -10,7 +10,7 @@ Lizz is a lightweight and simple JVM-only Kotlin build tool that provides an alt
 - Kotlin compiler installed via Homebrew: `brew install kotlin`
 - Set KOTLIN_HOME environment variable:
   ```bash
-  echo 'export KOTLIN_HOME="/opt/homebrew/Cellar/kotlin/2.1.21/libexec:$KOTLIN_HOME"' >> ~/.zshrc
+  echo 'export KOTLIN_HOME="/opt/homebrew/Cellar/kotlin/2.2.0/libexec:$KOTLIN_HOME"' >> ~/.zshrc
   echo 'export PATH="$HOME/.local/lizz/bin:$PATH"' >> ~/.zshrc
   ```
 
@@ -91,7 +91,7 @@ class MyComponentTest {
 - **Scripts**: Custom commands in `scripts` map
 
 ### Technology Stack
-- **Kotlin**: 2.1.20
+- **Kotlin**: 2.2.0
 - **CLI Framework**: Clikt 5.0.1
 - **Serialization**: kotlinx.serialization 1.8.1 + KAML 0.82.0 for YAML
 - **Dependency Resolution**: Apache Maven Resolver 2.0.9

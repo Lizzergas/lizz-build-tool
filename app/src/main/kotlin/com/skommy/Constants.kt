@@ -16,5 +16,5 @@ object BuildConstants {
     const val MAIN_KT = "main.kt"
     const val CONFIG_FILE = "lizz.yaml"
     const val PROJECT_VERSION = "0.0.1"
-    const val KOTLIN_VERSION = "2.1.20"
+    const val KOTLIN_VERSION = "2.2.0"
 }
