@@ -2,6 +2,8 @@ package com.skommy.resolver
 
 import com.skommy.resolver.listeners.ConsoleRepositoryListener
 import com.skommy.resolver.listeners.ConsoleTransferListener
+import com.skommy.services.LoggerProvider
+import com.skommy.services.LoggerService
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.RepositorySystemSession
 import org.eclipse.aether.artifact.DefaultArtifact
@@ -15,7 +17,10 @@ import org.eclipse.aether.util.graph.visitor.NodeListGenerator
 import org.eclipse.aether.util.graph.visitor.PreorderDependencyNodeConsumerVisitor
 import java.io.File
 
-class MavenResolver(private val projectRoot: File = File(System.getProperty("user.dir"))) {
+class MavenResolver(
+    private val projectRoot: File = File(System.getProperty("user.dir")),
+    private val logger: LoggerService = LoggerProvider.get(),
+) {
     private val repositorySystem: RepositorySystem = RepositorySystemSupplier().repositorySystem
     private val session: RepositorySystemSession = getRepositorySession(repositorySystem)
     private val central = RemoteRepository.Builder(
@@ -28,7 +33,7 @@ class MavenResolver(private val projectRoot: File = File(System.getProperty("use
      * @return Classpath string for the resolved artifact and its dependencies
      */
     fun resolveArtifact(coordinates: String): String {
-        println("Resolving dependency: $coordinates")
+        logger.println("Resolving dependency: $coordinates")
 
         try {
             val artifact = DefaultArtifact(coordinates)
@@ -48,10 +53,10 @@ class MavenResolver(private val projectRoot: File = File(System.getProperty("use
             val nlg = PreorderDependencyNodeConsumerVisitor(nodeListGenerator)
             node.accept(nlg)
 
-            println("✓ Resolved $coordinates")
+            logger.println("✓ Resolved $coordinates")
             return nodeListGenerator.classPath
         } catch (e: Exception) {
-            println("✗ Failed to resolve $coordinates: ${e.message}")
+            logger.println("✗ Failed to resolve $coordinates: ${e.message}")
             return ""
         }
     }

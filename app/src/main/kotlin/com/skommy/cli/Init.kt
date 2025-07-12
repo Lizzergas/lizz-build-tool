@@ -9,13 +9,15 @@ import com.skommy.CompilerConstants
 import com.skommy.getCurrentFolderName
 import com.skommy.gradle.GradleBuild
 import com.skommy.models.buildSettings
-import com.skommy.services.BuildSettingsService
+import com.skommy.services.BuildService
 import java.io.File
 
 class Init : CliktCommand() {
     override fun help(context: Context): String = "Prompt user details about the project and output skeleton project"
     override fun run() {
-        if (BuildSettingsService.exists()) {
+        val buildService = BuildService()
+        val gradleBuild = GradleBuild()
+        if (buildService.exists()) {
             echo("${BuildConstants.CONFIG_FILE} already exists", err = true)
             currentContext.exitProcess(1)
         }
@@ -51,16 +53,16 @@ class Init : CliktCommand() {
             author = author.orEmpty(),
             dependencies = listOf("com.google.code.gson:gson:2.10.1"),
         )
-        BuildSettingsService.save(settings)
+        buildService.save(settings)
 
         val helloWorld = """
             import com.google.gson.Gson
-            
+
             data class Person(val name: String, val age: Int)
-            
+
             fun main() {
                 println("Hello world!")
-                
+
                     // Test Gson
                     val gson = Gson()
                     val person = Person("John Doe", 30)
@@ -70,8 +72,8 @@ class Init : CliktCommand() {
         """.trimIndent()
         val mainKt = File(BuildConstants.MAIN_KT)
         mainKt.writeText(helloWorld)
-        GradleBuild.stubGradleSetup(CompilerConstants.getKotlinHome())
-        GradleBuild.syncGradleStub(listOf(), settings.kotlin.version)
+        gradleBuild.stubGradleSetup(CompilerConstants.getKotlinHome())
+        gradleBuild.syncGradleStub(listOf(), settings.kotlin.version)
 
         val gitIgnore = File(".gitignore")
         gitIgnore.writeText(

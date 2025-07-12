@@ -5,7 +5,8 @@ package com.skommy
 
 import com.skommy.models.buildSettings
 import com.skommy.models.simpleScript
-import com.skommy.services.BuildSettingsService
+import com.skommy.services.BuildService
+import com.skommy.services.LoggerService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -20,10 +21,30 @@ class AppTest {
     lateinit var tempDir: Path
 
     private lateinit var testDir: File
+    private lateinit var buildService: BuildService
 
     @BeforeEach
     fun setUp() {
         testDir = tempDir.toFile()
+        // Create a simple mock logger for testing
+        val testLogger = object : LoggerService {
+            override fun println(message: String, err: Boolean) {
+                if (err) {
+                    System.err.println(message)
+                } else {
+                    System.out.println(message)
+                }
+            }
+
+            override fun print(message: String, err: Boolean) {
+                if (err) {
+                    System.err.print(message)
+                } else {
+                    System.out.print(message)
+                }
+            }
+        }
+        buildService = BuildService(testLogger)
     }
 
     @AfterEach
@@ -53,15 +74,15 @@ class AppTest {
         )
 
         // Test save functionality
-        assertFalse(BuildSettingsService.exists(testDir), "Config file should not exist initially")
+        assertFalse(buildService.exists(testDir), "Config file should not exist initially")
 
-        BuildSettingsService.save(originalSettings, testDir)
+        buildService.save(originalSettings, testDir)
 
-        assertTrue(BuildSettingsService.exists(testDir), "Config file should exist after save")
+        assertTrue(buildService.exists(testDir), "Config file should exist after save")
 
         // Test load functionality
         val configFile = File(testDir, "lizz.yaml")
-        val loadedSettings = BuildSettingsService.load(configFile)
+        val loadedSettings = buildService.load(configFile)
 
         // Verify loaded settings match original
         assertEquals(originalSettings.project.name, loadedSettings.project.name)
@@ -97,5 +118,104 @@ class AppTest {
         assertTrue(settings.scripts.isEmpty()) // default value
 
         println("[DEBUG_LOG] buildSettings helper function test completed successfully")
+    }
+
+    @Test
+    fun `test kotlinHome configuration override`() {
+        println("[DEBUG_LOG] Testing kotlinHome configuration override")
+
+        // Test with custom kotlinHome
+        val customKotlinHome = "/custom/path/to/kotlin"
+        val settingsWithCustomHome = buildSettings(
+            name = "kotlin-home-test",
+            version = "1.0.0",
+            author = "Test Author",
+            kotlinHome = customKotlinHome,
+            dependencies = emptyList()
+        )
+
+        // Verify that the custom kotlinHome is set in settings
+        assertEquals(customKotlinHome, settingsWithCustomHome.kotlin.kotlinHome)
+
+        // Test CompilerConstants.getKotlinHome with settings
+        val resolvedKotlinHome = CompilerConstants.getKotlinHome(settingsWithCustomHome)
+        assertEquals(customKotlinHome, resolvedKotlinHome)
+
+        // Test CompilerConstants.getStdLib with settings
+        val expectedStdLibPath = "$customKotlinHome/lib/kotlin-stdlib.jar"
+        val resolvedStdLibPath = CompilerConstants.getStdLib(settingsWithCustomHome)
+        assertEquals(expectedStdLibPath, resolvedStdLibPath)
+
+        // Test with empty kotlinHome (should fallback to environment)
+        val settingsWithEmptyHome = buildSettings(
+            name = "empty-home-test",
+            version = "1.0.0",
+            author = "Test Author",
+            kotlinHome = "", // Empty string should trigger fallback
+            dependencies = emptyList()
+        )
+        val fallbackKotlinHome = CompilerConstants.getKotlinHome(settingsWithEmptyHome)
+        val fallbackStdLib = CompilerConstants.getStdLib(settingsWithEmptyHome)
+
+        // These should use the environment variable
+        assertNotNull(fallbackKotlinHome)
+        assertTrue(fallbackStdLib.contains("kotlin-stdlib.jar"))
+
+        // Test save and load with custom kotlinHome
+        buildService.save(settingsWithCustomHome, testDir)
+        val configFile = File(testDir, "lizz.yaml")
+        val loadedSettings = buildService.load(configFile)
+
+        // Verify kotlinHome is preserved after save/load
+        assertEquals(customKotlinHome, loadedSettings.kotlin.kotlinHome)
+
+        println("[DEBUG_LOG] kotlinHome configuration override test completed successfully")
+    }
+
+    @Test
+    fun `test YAML loading without home field`() {
+        println("[DEBUG_LOG] Testing YAML loading without home field")
+
+        // Create a YAML file without the home field
+        val yamlContent = """
+            project:
+              name: "test-project"
+              version: "1.0.0"
+              author: "Test Developer"
+              description: "Test project without home field"
+
+            kotlin:
+              version: "2.2.0"
+
+            dependencies: []
+
+            scripts: {}
+        """.trimIndent()
+
+        val configFile = File(testDir, "lizz.yaml")
+        configFile.writeText(yamlContent)
+
+        // Test that loading works without the home field
+        val loadedSettings = buildService.load(configFile)
+
+        // Verify that kotlinHome defaults to empty string
+        assertEquals("", loadedSettings.kotlin.kotlinHome, "kotlinHome should default to empty string when not specified")
+
+        // Verify other fields are loaded correctly
+        assertEquals("test-project", loadedSettings.project.name)
+        assertEquals("1.0.0", loadedSettings.project.version)
+        assertEquals("Test Developer", loadedSettings.project.author)
+        assertEquals("2.2.0", loadedSettings.kotlin.version)
+
+        // Test that CompilerConstants handles empty kotlinHome correctly (fallback to environment)
+        val resolvedHome = CompilerConstants.getKotlinHome(loadedSettings)
+        val envKotlinHome = CompilerConstants.getKotlinHome()
+        assertEquals(envKotlinHome, resolvedHome, "Should fallback to environment KOTLIN_HOME when kotlinHome is empty")
+
+        val resolvedStdLib = CompilerConstants.getStdLib(loadedSettings)
+        val expectedStdLib = "$envKotlinHome/lib/kotlin-stdlib.jar"
+        assertEquals(expectedStdLib, resolvedStdLib, "Should use environment KOTLIN_HOME for stdlib path when kotlinHome is empty")
+
+        println("[DEBUG_LOG] YAML loading without home field test completed successfully")
     }
 }

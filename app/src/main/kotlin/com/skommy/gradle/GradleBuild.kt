@@ -1,10 +1,47 @@
 package com.skommy.gradle
 
+import com.skommy.services.LoggerProvider
+import com.skommy.services.LoggerService
 import java.io.File
 import java.nio.file.Files
 
-object GradleBuild {
-    val STUB = """
+class GradleBuild(
+    private val logger: LoggerService = LoggerProvider.get()
+) {
+    fun stubGradleSetup(kotlinHome: String) {
+        val settingsFile = File("settings.gradle.kts")
+        val buildFile = File("build.gradle.kts")
+
+        settingsFile.writeText("""rootProject.name = "lizz-project"""".trimIndent())
+
+        val template = STUB
+        buildFile.writeText(template.replace("%KOTLIN_HOME%", kotlinHome))
+        logger.println("Generated settings.gradle.kts and build.gradle.kts")
+    }
+
+    fun syncGradleStub(resolvedJars: List<File>, kotlinVersion: String) {
+        val buildFile = File("build.gradle.kts")
+
+        if (buildFile.exists()) {
+            val content = Files.readString(buildFile.toPath())
+
+            val depsBlock = if (resolvedJars.isEmpty()) {
+                ""
+            } else {
+                buildString {
+                    resolvedJars.forEach { jar ->
+                        appendLine("""    implementation(files("${jar.absolutePath.replace("\\", "\\\\")}"))""")
+                    }
+                }
+            }
+
+            buildFile.writeText(content.replace("%DEPENDENCY_LINES%", depsBlock))
+            buildFile.writeText(content.replace("%KOTLIN_VERSION%", kotlinVersion))
+        }
+    }
+
+    companion object {
+        val STUB = """
         // Temporary solution to support Auto-complete in Intellij before BSP support is added
         // build.gradle.kts  (generated — do not edit)
         plugins {
@@ -42,36 +79,5 @@ object GradleBuild {
             commandLine("lizz", "run")
         }    
     """.trimIndent()
-
-    fun stubGradleSetup(kotlinHome: String) {
-        val settingsFile = File("settings.gradle.kts")
-        val buildFile = File("build.gradle.kts")
-
-        settingsFile.writeText("""rootProject.name = "lizz-project"""".trimIndent())
-
-        val template = STUB
-        buildFile.writeText(template.replace("%KOTLIN_HOME%", kotlinHome))
-        println("Generated settings.gradle.kts and build.gradle.kts")
-    }
-
-    fun syncGradleStub(resolvedJars: List<File>, kotlinVersion: String) {
-        val buildFile = File("build.gradle.kts")
-
-        if (buildFile.exists()) {
-            val content = Files.readString(buildFile.toPath())
-
-            val depsBlock = if (resolvedJars.isEmpty()) {
-                ""
-            } else {
-                buildString {
-                    resolvedJars.forEach { jar ->
-                        appendLine("""    implementation(files("${jar.absolutePath.replace("\\", "\\\\")}"))""")
-                    }
-                }
-            }
-
-            buildFile.writeText(content.replace("%DEPENDENCY_LINES%", depsBlock))
-            buildFile.writeText(content.replace("%KOTLIN_VERSION%", kotlinVersion))
-        }
     }
 }

@@ -1,17 +1,20 @@
 package com.skommy.services
 
 import com.skommy.CompilerConstants
-import com.skommy.resolver.MavenResolver
 import com.skommy.models.BuildSettings
+import com.skommy.resolver.MavenResolver
 import java.io.File
 
 /**
  * Service responsible for managing project dependencies.
  * Handles resolution, caching, and providing dependency information.
  */
-class DependencyResolverService(private val projectRoot: File = File(System.getProperty("user.dir"))) {
+class DependencyService(
+    private val projectRoot: File = File(System.getProperty("user.dir")),
+    private val logger: LoggerService = LoggerProvider.get(),
+) {
     private val dependenciesFile = File(projectRoot, "${CompilerConstants.buildFolder}/dependencies.txt")
-    private val mavenResolver = MavenResolver(projectRoot)
+    private val mavenResolver = MavenResolver(projectRoot = projectRoot)
 
     /**
      * Resolves all dependencies from build settings and saves them to cache file.
@@ -19,6 +22,7 @@ class DependencyResolverService(private val projectRoot: File = File(System.getP
      * @return List of resolved JAR file paths
      */
     fun resolveAndCacheDependencies(settings: BuildSettings): List<String> {
+        logger.println("Resolving dependencies for ${settings.project.name}")
         if (settings.dependencies.isEmpty()) {
             return emptyList()
         }
@@ -79,17 +83,18 @@ class DependencyResolverService(private val projectRoot: File = File(System.getP
 
     /**
      * Gets all dependencies required for compilation (cached + Kotlin stdlib).
+     * @param settings Build settings to determine Kotlin home path
      * @return List of all JAR paths needed for compilation
      */
-    fun getCompilationClasspath(): List<String> {
+    fun getCompilationClasspath(settings: BuildSettings): List<String> {
         val classpaths = mutableListOf<String>()
-        
+
         // Add Kotlin standard library
-        classpaths.add(CompilerConstants.stdLib)
-        
+        classpaths.add(CompilerConstants.getStdLib(settings))
+
         // Add cached dependencies
         classpaths.addAll(getCachedDependencies())
-        
+
         return classpaths
     }
 

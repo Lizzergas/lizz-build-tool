@@ -1,6 +1,7 @@
 package com.skommy.models
 
 import com.skommy.BuildConstants
+import com.skommy.CompilerConstants
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -30,6 +31,7 @@ data class ProjectSettings(
 @Serializable
 data class KotlinSettings(
     val version: String,
+    @SerialName("home") val kotlinHome: String = "",
 )
 
 @Serializable(with = ScriptSerializer::class)
@@ -62,6 +64,7 @@ fun buildSettings(
     author: String,
     mainClass: String = BuildConstants.MAIN_KT_CLASS,
     kotlinVersion: String = BuildConstants.KOTLIN_VERSION,
+    kotlinHome: String = CompilerConstants.getKotlinHome(),
     dependencies: List<String>,
     scripts: Map<String, Script> = emptyMap(),
 ): BuildSettings {
@@ -73,7 +76,10 @@ fun buildSettings(
             description = description,
             mainClass = mainClass
         ),
-        kotlin = KotlinSettings(version = kotlinVersion),
+        kotlin = KotlinSettings(
+            version = kotlinVersion,
+            kotlinHome = kotlinHome,
+        ),
         dependencies = dependencies,
         scripts = scripts,
     )

@@ -1,24 +1,28 @@
 package com.skommy.resolver.listeners
 
+import com.skommy.services.LoggerProvider
+import com.skommy.services.LoggerService
 import org.eclipse.aether.RepositoryEvent
 import org.eclipse.aether.RepositoryListener
 
 // Repository listener for resolution events
-class ConsoleRepositoryListener : RepositoryListener {
+class ConsoleRepositoryListener(
+    private val logger: LoggerService = LoggerProvider.get()
+) : RepositoryListener {
     override fun artifactDescriptorInvalid(event: RepositoryEvent) {
-        println("Invalid artifact descriptor: ${event.artifact}")
+        logger.println("Invalid artifact descriptor: ${event.artifact}")
     }
 
     override fun artifactDescriptorMissing(event: RepositoryEvent) {
-        println("Missing artifact descriptor: ${event.artifact}")
+        logger.println("Missing artifact descriptor: ${event.artifact}")
     }
 
     override fun artifactResolving(event: RepositoryEvent) {
-        println("Resolving artifact: ${event.artifact}")
+        logger.println("Resolving artifact: ${event.artifact}")
     }
 
     override fun artifactResolved(event: RepositoryEvent) {
-        println("Resolved artifact: ${event.artifact}")
+        logger.println("Resolved artifact: ${event.artifact}")
     }
 
     override fun artifactDownloading(event: RepositoryEvent) {}

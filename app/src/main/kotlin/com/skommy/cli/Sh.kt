@@ -3,13 +3,14 @@ package com.skommy.cli
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
 import com.skommy.models.Script
-import com.skommy.services.BuildSettingsService
+import com.skommy.services.BuildService
 
 class Sh : LizzCommand() {
     private val name: String? by argument().optional()
 
     override fun runCommand() {
-        val settings = BuildSettingsService.load(yamlFile())
+        val buildService = BuildService()
+        val settings = buildService.load(yamlFile())
         val scripts = settings.scripts
 
         if (name == null) {
@@ -23,15 +24,15 @@ class Sh : LizzCommand() {
 
     private fun printAvailableScripts(scripts: Map<String, Script>) {
         if (scripts.isEmpty()) {
-            println("No scripts available.")
+            echo("No scripts available.")
             return
         }
 
-        println("Available scripts:")
+        echo("Available scripts:")
         scripts.forEach { (key, script) ->
             when (script) {
                 is Script.SimpleScript -> {
-                    println("  $key: ${script.command}")
+                    echo("  $key: ${script.command}")
                 }
             }
         }
@@ -40,13 +41,13 @@ class Sh : LizzCommand() {
     private fun executeScript(scriptName: String, scripts: Map<String, Script>) {
         val script = scripts[scriptName]
         if (script == null) {
-            println("Script '$scriptName' not found.")
-            println("Available scripts: ${scripts.keys.joinToString(", ")}")
+            echo("Script '$scriptName' not found.")
+            echo("Available scripts: ${scripts.keys.joinToString(", ")}")
             return
         }
 
         val command = script.command
-        println("Executing script '$scriptName': $command")
+        echo("Executing script '$scriptName': $command")
 
         try {
             val process = ProcessBuilder("sh", "-c", command)
@@ -56,12 +57,12 @@ class Sh : LizzCommand() {
 
             val exitCode = process.waitFor()
             if (exitCode == 0) {
-                println("Script '$scriptName' completed successfully.")
+                echo("Script '$scriptName' completed successfully.")
             } else {
-                println("Script '$scriptName' exited with code $exitCode")
+                echo("Script '$scriptName' exited with code $exitCode")
             }
         } catch (e: Exception) {
-            println("Error executing script '$scriptName': ${e.message}")
+            echo("Error executing script '$scriptName': ${e.message}")
             e.printStackTrace()
         }
     }

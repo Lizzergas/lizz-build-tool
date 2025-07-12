@@ -1,13 +1,17 @@
 package com.skommy.resolver.listeners
 
+import com.skommy.services.LoggerProvider
+import com.skommy.services.LoggerService
 import org.eclipse.aether.transfer.TransferEvent
 import org.eclipse.aether.transfer.TransferListener
 
 // Transfer listener for download progress
-class ConsoleTransferListener : TransferListener {
+class ConsoleTransferListener(
+    private val logger: LoggerService = LoggerProvider.get()
+) : TransferListener {
     override fun transferInitiated(event: TransferEvent) {
         val resource = event.resource
-        println("Downloading ${resource.repositoryUrl}${resource.resourceName}")
+        logger.println("Downloading ${resource.repositoryUrl}${resource.resourceName}")
     }
 
     override fun transferProgressed(event: TransferEvent) {
@@ -17,17 +21,17 @@ class ConsoleTransferListener : TransferListener {
     override fun transferSucceeded(event: TransferEvent) {
         val resource = event.resource
         val size = event.transferredBytes
-        println("Downloaded ${resource.resourceName} (${size / 1024} KB)")
+        logger.println("Downloaded ${resource.resourceName} (${size / 1024} KB)")
     }
 
     override fun transferFailed(event: TransferEvent) {
         val resource = event.resource
-        println("Failed to download ${resource.resourceName}: ${event.exception?.message}")
+        logger.println("Failed to download ${resource.resourceName}: ${event.exception?.message}")
     }
 
     override fun transferCorrupted(event: TransferEvent) {
         val resource = event.resource
-        println("Corrupted download ${resource.resourceName}: ${event.exception?.message}")
+        logger.println("Corrupted download ${resource.resourceName}: ${event.exception?.message}")
     }
 
     override fun transferStarted(event: TransferEvent) {}

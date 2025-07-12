@@ -4,19 +4,13 @@
 package com.skommy
 
 import BuildConfig
-import com.github.ajalt.clikt.core.*
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.skommy.cli.*
-
-class Log(private val currentContext: Context) {
-    fun println(message: String, err: Boolean = false) {
-        currentContext.echoMessage(currentContext, message, false, err)
-    }
-
-    fun print(message: String, err: Boolean = false) {
-        currentContext.echoMessage(currentContext, message, false, err)
-    }
-}
+import com.skommy.services.DefaultLoggerService
+import com.skommy.services.LoggerProvider
 
 class Lizz : CliktCommand(name = "lizz") {
     init {
@@ -24,7 +18,7 @@ class Lizz : CliktCommand(name = "lizz") {
     }
 
     override fun run() {
-        currentContext.obj = Log(currentContext)
+        LoggerProvider.set(DefaultLoggerService(currentContext))
     }
 }
 

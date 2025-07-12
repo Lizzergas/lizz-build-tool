@@ -3,8 +3,8 @@ package com.skommy.cli
 import com.github.ajalt.clikt.core.Context
 import com.skommy.BuildConstants
 import com.skommy.compiler.LizzJVMCompiler
-import com.skommy.services.BuildSettingsService
-import com.skommy.services.DependencyResolverService
+import com.skommy.services.BuildService
+import com.skommy.services.DependencyService
 import org.jetbrains.kotlin.cli.common.ExitCode
 
 /**
@@ -16,9 +16,10 @@ class Build : LizzCommand() {
 
     override fun help(context: Context): String = "Build Kotlin using K2JVMCompiler and output in builds folder"
     override fun runCommand() {
-        val dependencyResolveService = DependencyResolverService(root)
+        val buildService = BuildService()
+        val dependencyResolveService = DependencyService(projectRoot = root)
         val mainKt = rootFile(BuildConstants.MAIN_KT)
-        val settings = BuildSettingsService.load(yamlFile())
+        val settings = buildService.load(yamlFile())
 
         echo("Building ${settings.project.name} v${settings.project.version}...")
 
