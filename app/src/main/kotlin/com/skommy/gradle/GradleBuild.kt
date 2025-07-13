@@ -1,5 +1,6 @@
 package com.skommy.gradle
 
+import com.skommy.models.BuildSettings
 import com.skommy.services.LoggerProvider
 import com.skommy.services.LoggerService
 import java.io.File
@@ -19,12 +20,11 @@ class GradleBuild(
         logger.println("Generated settings.gradle.kts and build.gradle.kts")
     }
 
-    fun syncGradleStub(resolvedJars: List<File>, kotlinVersion: String) {
+    fun syncGradleStub(resolvedJars: List<File>, settings: BuildSettings) {
         val buildFile = File("build.gradle.kts")
 
         if (buildFile.exists()) {
             val content = Files.readString(buildFile.toPath())
-
             val depsBlock = if (resolvedJars.isEmpty()) {
                 ""
             } else {
@@ -35,8 +35,17 @@ class GradleBuild(
                 }
             }
 
-            buildFile.writeText(content.replace("%DEPENDENCY_LINES%", depsBlock))
-            buildFile.writeText(content.replace("%KOTLIN_VERSION%", kotlinVersion))
+            println("\n\n\n IS REFLECTION ENABLED: ${settings.kotlin.reflection} \n\n\n")
+            val reflectLine = if (settings.kotlin.reflection) {
+                """    implementation(files("%KOTLIN_HOME%/lib/kotlin-reflect.jar"))"""
+            } else {
+                ""
+            }
+
+            var updatedContent = content.replace("%DEPENDENCY_LINES%", depsBlock)
+            updatedContent = updatedContent.replace("%KOTLIN_VERSION%", settings.kotlin.version)
+            updatedContent = updatedContent.replace("%KOTLIN_REFLECT_LINE%", reflectLine)
+            buildFile.writeText(updatedContent)
         }
     }
 
@@ -63,6 +72,7 @@ class GradleBuild(
         // 3️⃣  Add Kotlin std-lib and every resolved jar as libraries
         dependencies {
             implementation(files("%KOTLIN_HOME%/lib/kotlin-stdlib.jar"))
+        %KOTLIN_REFLECT_LINE%
         %DEPENDENCY_LINES%
         }
 
@@ -72,7 +82,7 @@ class GradleBuild(
             description = "Compile Kotlin JVM and output a runnable JAR file"
             commandLine("lizz", "build")
         }    
-        
+
         tasks.register<Exec>("lizz-run") {
             group = "lizz-build-tool"
             description = "Compile Kotlin JVM and output a runnable JAR file"

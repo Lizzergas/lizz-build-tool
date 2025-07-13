@@ -22,12 +22,13 @@ class AppTest {
 
     private lateinit var testDir: File
     private lateinit var buildService: BuildService
+    private lateinit var testLogger: LoggerService
 
     @BeforeEach
     fun setUp() {
         testDir = tempDir.toFile()
         // Create a simple mock logger for testing
-        val testLogger = object : LoggerService {
+        testLogger = object : LoggerService {
             override fun println(message: String, err: Boolean) {
                 if (err) {
                     System.err.println(message)
@@ -74,11 +75,11 @@ class AppTest {
         )
 
         // Test save functionality
-        assertFalse(buildService.exists(testDir), "Config file should not exist initially")
+        assertFalse(buildService.yamlExists(testDir), "Config file should not exist initially")
 
         buildService.save(originalSettings, testDir)
 
-        assertTrue(buildService.exists(testDir), "Config file should exist after save")
+        assertTrue(buildService.yamlExists(testDir), "Config file should exist after save")
 
         // Test load functionality
         val configFile = File(testDir, "lizz.yaml")
@@ -217,5 +218,81 @@ class AppTest {
         assertEquals(expectedStdLib, resolvedStdLib, "Should use environment KOTLIN_HOME for stdlib path when kotlinHome is empty")
 
         println("[DEBUG_LOG] YAML loading without home field test completed successfully")
+    }
+
+    @Test
+    fun `test conditional reflection JAR inclusion`() {
+        println("[DEBUG_LOG] Testing conditional reflection JAR inclusion")
+
+        // Test 1: Default behavior (reflection = false)
+        val settingsDefault = buildSettings(
+            name = "reflection-test",
+            version = "1.0.0",
+            author = "Test Author",
+            dependencies = emptyList()
+        )
+
+        // Verify reflection property defaults to false
+        assertFalse(settingsDefault.kotlin.reflection, "Reflection should default to false")
+
+        // Test DependencyService with default settings
+        val dependencyService = com.skommy.services.DependencyService(projectRoot = testDir, logger = testLogger)
+        val classpathDefault = dependencyService.getCompilationClasspath(settingsDefault)
+
+        // Should contain stdlib but not reflection
+        assertTrue(classpathDefault.any { it.contains("kotlin-stdlib.jar") }, "Should contain kotlin-stdlib.jar")
+        assertFalse(classpathDefault.any { it.contains("kotlin-reflect.jar") }, "Should NOT contain kotlin-reflect.jar by default")
+
+        println("[DEBUG_LOG] Default classpath size: ${classpathDefault.size}")
+        classpathDefault.forEach { println("[DEBUG_LOG] Default - $it") }
+
+        // Test 2: Reflection enabled
+        val settingsWithReflection = buildSettings(
+            name = "reflection-test",
+            version = "1.0.0",
+            author = "Test Author",
+            dependencies = emptyList(),
+            reflection = true
+        )
+
+        // Verify reflection property is set to true
+        assertTrue(settingsWithReflection.kotlin.reflection, "Reflection should be true when explicitly set")
+
+        val classpathWithReflection = dependencyService.getCompilationClasspath(settingsWithReflection)
+
+        // Should contain both stdlib and reflection
+        assertTrue(classpathWithReflection.any { it.contains("kotlin-stdlib.jar") }, "Should contain kotlin-stdlib.jar")
+        assertTrue(classpathWithReflection.any { it.contains("kotlin-reflect.jar") }, "Should contain kotlin-reflect.jar when enabled")
+
+        println("[DEBUG_LOG] Reflection classpath size: ${classpathWithReflection.size}")
+        classpathWithReflection.forEach { println("[DEBUG_LOG] Reflection - $it") }
+
+        // Verify classpath size difference
+        assertEquals(classpathDefault.size + 1, classpathWithReflection.size, "Reflection classpath should have one more entry")
+
+        // Test 3: Test CompilerConstants.getReflect method
+        val customKotlinHome = "/custom/kotlin/path"
+        val settingsWithCustomHome = buildSettings(
+            name = "custom-home-test",
+            version = "1.0.0",
+            author = "Test Author",
+            kotlinHome = customKotlinHome,
+            dependencies = emptyList(),
+            reflection = true
+        )
+
+        val expectedReflectPath = "$customKotlinHome/lib/kotlin-reflect.jar"
+        val actualReflectPath = CompilerConstants.getReflect(settingsWithCustomHome)
+        assertEquals(expectedReflectPath, actualReflectPath, "getReflect should use custom kotlin home")
+
+        // Test 4: YAML serialization/deserialization with reflection
+        buildService.save(settingsWithReflection, testDir)
+        val configFile = File(testDir, "lizz.yaml")
+        val loadedSettings = buildService.load(configFile)
+
+        // Verify reflection property is preserved after save/load
+        assertTrue(loadedSettings.kotlin.reflection, "Reflection property should be preserved after save/load")
+
+        println("[DEBUG_LOG] Conditional reflection JAR inclusion test completed successfully")
     }
 }

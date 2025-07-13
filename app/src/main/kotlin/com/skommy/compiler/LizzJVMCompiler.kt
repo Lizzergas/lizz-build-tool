@@ -93,6 +93,16 @@ class LizzJVMCompiler(
             logger.println("KOTLIN_HOME was not set properly for path: ${CompilerConstants.getStdLib(settings)}")
         }
 
+        // Add Kotlin reflection library if enabled
+        if (settings.kotlin.reflection) {
+            val kotlinReflect = File(CompilerConstants.getReflect(settings))
+            if (kotlinReflect.exists()) {
+                classpaths.add(kotlinReflect.name)
+            } else {
+                logger.println("KOTLIN_HOME was not set properly for reflection path: ${CompilerConstants.getReflect(settings)}")
+            }
+        }
+
         // For fat JAR, we don't need external classpath entries since everything is included
         // But we keep this for compatibility if someone wants to use external JARs
         val resolvedDeps = dependencyService.getCachedDependencies()
@@ -127,6 +137,11 @@ class LizzJVMCompiler(
                 val kotlinStdlib = File(CompilerConstants.getStdLib(settings))
                 if (kotlinStdlib.exists()) {
                     addJarToFatJar(kotlinStdlib, jarOut, addedEntries)
+                }
+
+                if (settings.kotlin.reflection) {
+                    val reflection = File(CompilerConstants.getReflect(settings))
+                    addJarToFatJar(reflection, jarOut, addedEntries)
                 }
 
                 // Add all resolved dependencies

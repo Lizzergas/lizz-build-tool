@@ -14,7 +14,7 @@ class DependencyService(
     private val logger: LoggerService = LoggerProvider.get(),
 ) {
     private val dependenciesFile = File(projectRoot, "${CompilerConstants.buildFolder}/dependencies.txt")
-    private val mavenResolver = MavenResolver(projectRoot = projectRoot)
+    private val mavenResolver = MavenResolver(projectRoot = projectRoot, logger = logger)
 
     /**
      * Resolves all dependencies from build settings and saves them to cache file.
@@ -82,8 +82,8 @@ class DependencyService(
     }
 
     /**
-     * Gets all dependencies required for compilation (cached + Kotlin stdlib).
-     * @param settings Build settings to determine Kotlin home path
+     * Gets all dependencies required for compilation (cached + Kotlin stdlib + optional reflection).
+     * @param settings Build settings to determine Kotlin home path and reflection requirement
      * @return List of all JAR paths needed for compilation
      */
     fun getCompilationClasspath(settings: BuildSettings): List<String> {
@@ -91,6 +91,11 @@ class DependencyService(
 
         // Add Kotlin standard library
         classpaths.add(CompilerConstants.getStdLib(settings))
+
+        // Add Kotlin reflection library if enabled
+        if (settings.kotlin.reflection) {
+            classpaths.add(CompilerConstants.getReflect(settings))
+        }
 
         // Add cached dependencies
         classpaths.addAll(getCachedDependencies())

@@ -91,8 +91,8 @@ class MavenResolver(
         val sessionBuilder = SessionBuilderSupplier(repositorySystem)
             .get()
             .withLocalRepositoryBaseDirectories(buildDepsPath)
-            .setTransferListener(ConsoleTransferListener())
-            .setRepositoryListener(ConsoleRepositoryListener())
+            .setTransferListener(ConsoleTransferListener(logger))
+            .setRepositoryListener(ConsoleRepositoryListener(logger))
         val session = sessionBuilder.build()
 
         return session

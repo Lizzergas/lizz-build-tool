@@ -32,6 +32,7 @@ data class ProjectSettings(
 data class KotlinSettings(
     val version: String,
     @SerialName("home") val kotlinHome: String = "",
+    val reflection: Boolean = false,
 )
 
 @Serializable(with = ScriptSerializer::class)
@@ -67,6 +68,7 @@ fun buildSettings(
     kotlinHome: String = CompilerConstants.getKotlinHome(),
     dependencies: List<String>,
     scripts: Map<String, Script> = emptyMap(),
+    reflection: Boolean = false,
 ): BuildSettings {
     return BuildSettings(
         project = ProjectSettings(
@@ -79,6 +81,7 @@ fun buildSettings(
         kotlin = KotlinSettings(
             version = kotlinVersion,
             kotlinHome = kotlinHome,
+            reflection = reflection,
         ),
         dependencies = dependencies,
         scripts = scripts,

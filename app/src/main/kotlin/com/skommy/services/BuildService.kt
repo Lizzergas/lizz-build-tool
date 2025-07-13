@@ -36,6 +36,6 @@ class BuildService(
      * @param dir The directory to check (defaults to current directory)
      * @return true if lizz.yaml exists in the directory
      */
-    fun exists(dir: File = File(".")): Boolean =
+    fun yamlExists(dir: File = File(".")): Boolean =
         File(dir, BuildConstants.CONFIG_FILE).exists()
 }
