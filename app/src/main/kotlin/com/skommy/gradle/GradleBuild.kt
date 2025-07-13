@@ -25,27 +25,40 @@ class GradleBuild(
 
         if (buildFile.exists()) {
             val content = Files.readString(buildFile.toPath())
-            val depsBlock = if (resolvedJars.isEmpty()) {
-                ""
-            } else {
-                buildString {
+
+            println("\n\n\n IS REFLECTION ENABLED: ${settings.kotlin.reflection} \n\n\n")
+
+            // Find the dependencies block and rebuild it
+            val dependenciesStart = content.indexOf("dependencies {")
+            val dependenciesEnd = content.indexOf("}", dependenciesStart) + 1
+
+            if (dependenciesStart != -1 && dependenciesEnd != -1) {
+                val beforeDependencies = content.substring(0, dependenciesStart)
+                val afterDependencies = content.substring(dependenciesEnd)
+
+                // Build new dependencies block
+                val newDependenciesBlock = buildString {
+                    appendLine("dependencies {")
+                    appendLine("""    implementation(files("${settings.kotlin.kotlinHome}/lib/kotlin-stdlib.jar"))""")
+
+                    // Add reflection if enabled
+                    if (settings.kotlin.reflection) {
+                        appendLine("""    implementation(files("${settings.kotlin.kotlinHome}/lib/kotlin-reflect.jar"))""")
+                    }
+
+                    // Add resolved dependencies
                     resolvedJars.forEach { jar ->
                         appendLine("""    implementation(files("${jar.absolutePath.replace("\\", "\\\\")}"))""")
                     }
+
+                    append("}")
                 }
-            }
 
-            println("\n\n\n IS REFLECTION ENABLED: ${settings.kotlin.reflection} \n\n\n")
-            val reflectLine = if (settings.kotlin.reflection) {
-                """    implementation(files("%KOTLIN_HOME%/lib/kotlin-reflect.jar"))"""
+                val updatedContent = beforeDependencies + newDependenciesBlock + afterDependencies
+                buildFile.writeText(updatedContent)
             } else {
-                ""
+                logger.println("Warning: Could not find dependencies block in build.gradle.kts")
             }
-
-            var updatedContent = content.replace("%DEPENDENCY_LINES%", depsBlock)
-            updatedContent = updatedContent.replace("%KOTLIN_VERSION%", settings.kotlin.version)
-            updatedContent = updatedContent.replace("%KOTLIN_REFLECT_LINE%", reflectLine)
-            buildFile.writeText(updatedContent)
         }
     }
 
