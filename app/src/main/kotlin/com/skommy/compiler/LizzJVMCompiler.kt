@@ -3,8 +3,7 @@ package com.skommy.compiler
 import com.skommy.CompilerConstants
 import com.skommy.models.BuildSettings
 import com.skommy.services.DependencyService
-import com.skommy.services.LoggerProvider
-import com.skommy.services.LoggerService
+import com.skommy.services.Logger
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
@@ -21,8 +20,7 @@ import java.util.jar.Manifest
 
 class LizzJVMCompiler(
     private val settings: BuildSettings,
-    private val projectRoot: File = File(System.getProperty("user.dir")),
-    private val logger: LoggerService = LoggerProvider.get()
+    private val projectRoot: File = File(System.getProperty("user.dir"))
 ) {
     val jarPath = File(projectRoot, "${CompilerConstants.buildFolder}/${settings.project.name}.jar").absolutePath
     private val dependencyService = DependencyService(projectRoot = projectRoot)
@@ -32,10 +30,10 @@ class LizzJVMCompiler(
     }
 
     fun compileKotlin(): ExitCode {
-        logger.println("Compiling Kotlin files...")
+        Logger.println("Compiling Kotlin files...")
 
         val classpath = buildClasspath()
-        logger.println("Using classpath: $classpath")
+        Logger.println("Using classpath: $classpath")
 
         val compiler = K2JVMCompiler()
         val args = compiler.createArguments().apply {
@@ -56,7 +54,7 @@ class LizzJVMCompiler(
             ), services = Services.EMPTY,
             arguments = args
         )
-        logger.println("Exit: ${exit.name} ${exit.code}")
+        Logger.println("Exit: ${exit.name} ${exit.code}")
         return exit
     }
 
@@ -78,8 +76,8 @@ class LizzJVMCompiler(
 
         // Create fat JAR with all dependencies included
         createFatJar(jarFile, manifest)
-        logger.println("classpath: $manifestClasspath")
-        logger.println("Created fat JAR with all dependencies")
+        Logger.println("classpath: $manifestClasspath")
+        Logger.println("Created fat JAR with all dependencies")
     }
 
     private fun buildManifestClasspath(): String {
@@ -90,7 +88,7 @@ class LizzJVMCompiler(
         if (kotlinStdlib.exists()) {
             classpaths.add(kotlinStdlib.name)
         } else {
-            logger.println("KOTLIN_HOME was not set properly for path: ${CompilerConstants.getStdLib(settings)}")
+            Logger.println("KOTLIN_HOME was not set properly for path: ${CompilerConstants.getStdLib(settings)}")
         }
 
         // Add Kotlin reflection library if enabled
@@ -99,7 +97,7 @@ class LizzJVMCompiler(
             if (kotlinReflect.exists()) {
                 classpaths.add(kotlinReflect.name)
             } else {
-                logger.println("KOTLIN_HOME was not set properly for reflection path: ${CompilerConstants.getReflect(settings)}")
+                Logger.println("KOTLIN_HOME was not set properly for reflection path: ${CompilerConstants.getReflect(settings)}")
             }
         }
 
@@ -177,12 +175,12 @@ class LizzJVMCompiler(
                             addedEntries.add(entry.name)
                         } catch (e: Exception) {
                             // Skip duplicate entries or other issues
-                            logger.println("Warning: Could not add entry ${entry.name} from ${jarFile.name}: ${e.message}")
+                            Logger.println("Warning: Could not add entry ${entry.name} from ${jarFile.name}: ${e.message}")
                         }
                     }
             }
         } catch (e: Exception) {
-            logger.println("Warning: Could not process JAR ${jarFile.name}: ${e.message}")
+            Logger.println("Warning: Could not process JAR ${jarFile.name}: ${e.message}")
         }
     }
 

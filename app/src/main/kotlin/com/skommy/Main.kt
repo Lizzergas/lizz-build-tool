@@ -9,8 +9,7 @@ import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.skommy.cli.*
-import com.skommy.services.DefaultLoggerService
-import com.skommy.services.LoggerProvider
+import com.skommy.services.Logger
 
 class Lizz : CliktCommand(name = "lizz") {
     init {
@@ -18,7 +17,7 @@ class Lizz : CliktCommand(name = "lizz") {
     }
 
     override fun run() {
-        LoggerProvider.set(DefaultLoggerService(currentContext))
+        Logger.initialize(currentContext)
     }
 }
 

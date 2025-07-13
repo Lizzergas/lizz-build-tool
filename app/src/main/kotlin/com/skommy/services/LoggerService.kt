@@ -3,39 +3,34 @@ package com.skommy.services
 import com.github.ajalt.clikt.core.Context
 
 /**
- * Interface for logging services in the Lizz build tool.
- * Provides methods for printing messages with proper formatting.
+ * Singleton Logger for the Lizz build tool.
+ * Provides global access to logging functionality with proper CLI output formatting.
  */
-interface LoggerService {
-    fun println(message: String, err: Boolean = false)
-    fun print(message: String, err: Boolean = false)
+object Logger {
+    private var currentContext: Context? = null
+
+    /**
+     * Initialize the logger with a Clikt Context for proper CLI output.
+     * This should be called once at application startup.
+     */
+    fun initialize(context: Context) {
+        this.currentContext = context
+    }
+
+    /**
+     * Print a message with a newline.
+     */
+    fun println(message: String, err: Boolean = false) {
+        val context = currentContext ?: throw IllegalStateException("Logger not initialized. Call Logger.initialize() first.")
+        context.echoMessage(context, message, false, err)
+    }
+
+    /**
+     * Print a message without a newline.
+     */
+    fun print(message: String, err: Boolean = false) {
+        val context = currentContext ?: throw IllegalStateException("Logger not initialized. Call Logger.initialize() first.")
+        context.echoMessage(context, message, false, err)
+    }
 }
 
-/**
- * Default implementation of LoggerService that uses Clikt's Context for proper CLI output.
- */
-class DefaultLoggerService(private val currentContext: Context) : LoggerService {
-    override fun println(message: String, err: Boolean) {
-        currentContext.echoMessage(currentContext, message, false, err)
-    }
-
-    override fun print(message: String, err: Boolean) {
-        currentContext.echoMessage(currentContext, message, false, err)
-    }
-}
-
-/**
- * Provider for LoggerService instances.
- * Allows setting and getting the current logger implementation.
- */
-object LoggerProvider {
-    private var loggerService: LoggerService? = null
-
-    fun set(logger: LoggerService) {
-        this.loggerService = logger
-    }
-
-    fun get(): LoggerService {
-        return loggerService ?: throw IllegalStateException("Logger not initialized")
-    }
-}

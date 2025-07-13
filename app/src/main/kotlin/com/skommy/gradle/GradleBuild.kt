@@ -1,14 +1,11 @@
 package com.skommy.gradle
 
 import com.skommy.models.BuildSettings
-import com.skommy.services.LoggerProvider
-import com.skommy.services.LoggerService
+import com.skommy.services.Logger
 import java.io.File
 import java.nio.file.Files
 
-class GradleBuild(
-    private val logger: LoggerService = LoggerProvider.get()
-) {
+class GradleBuild {
     fun stubGradleSetup(kotlinHome: String) {
         val settingsFile = File("settings.gradle.kts")
         val buildFile = File("build.gradle.kts")
@@ -17,7 +14,7 @@ class GradleBuild(
 
         val template = STUB
         buildFile.writeText(template.replace("%KOTLIN_HOME%", kotlinHome))
-        logger.println("Generated settings.gradle.kts and build.gradle.kts")
+        Logger.println("Generated settings.gradle.kts and build.gradle.kts")
     }
 
     fun syncGradleStub(resolvedJars: List<File>, settings: BuildSettings) {
@@ -25,8 +22,6 @@ class GradleBuild(
 
         if (buildFile.exists()) {
             val content = Files.readString(buildFile.toPath())
-
-            println("\n\n\n IS REFLECTION ENABLED: ${settings.kotlin.reflection} \n\n\n")
 
             // Find the dependencies block and rebuild it
             val dependenciesStart = content.indexOf("dependencies {")
@@ -59,7 +54,7 @@ class GradleBuild(
                 val updatedContent = beforeDependencies + newDependenciesBlock + afterDependencies
                 buildFile.writeText(updatedContent)
             } else {
-                logger.println("Warning: Could not find dependencies block in build.gradle.kts")
+                Logger.println("Warning: Could not find dependencies block in build.gradle.kts")
             }
         }
     }

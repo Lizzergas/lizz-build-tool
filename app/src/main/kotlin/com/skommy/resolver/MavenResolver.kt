@@ -2,8 +2,7 @@ package com.skommy.resolver
 
 import com.skommy.resolver.listeners.ConsoleRepositoryListener
 import com.skommy.resolver.listeners.ConsoleTransferListener
-import com.skommy.services.LoggerProvider
-import com.skommy.services.LoggerService
+import com.skommy.services.Logger
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.RepositorySystemSession
 import org.eclipse.aether.artifact.DefaultArtifact
@@ -18,8 +17,7 @@ import org.eclipse.aether.util.graph.visitor.PreorderDependencyNodeConsumerVisit
 import java.io.File
 
 class MavenResolver(
-    private val projectRoot: File = File(System.getProperty("user.dir")),
-    private val logger: LoggerService = LoggerProvider.get(),
+    private val projectRoot: File = File(System.getProperty("user.dir"))
 ) {
     private val repositorySystem: RepositorySystem = RepositorySystemSupplier().repositorySystem
     private val session: RepositorySystemSession = getRepositorySession(repositorySystem)
@@ -33,7 +31,7 @@ class MavenResolver(
      * @return Classpath string for the resolved artifact and its dependencies
      */
     fun resolveArtifact(coordinates: String): String {
-        logger.println("Resolving dependency: $coordinates")
+        Logger.println("Resolving dependency: $coordinates")
 
         try {
             val artifact = DefaultArtifact(coordinates)
@@ -53,10 +51,10 @@ class MavenResolver(
             val nlg = PreorderDependencyNodeConsumerVisitor(nodeListGenerator)
             node.accept(nlg)
 
-            logger.println("✓ Resolved $coordinates")
+            Logger.println("✓ Resolved $coordinates")
             return nodeListGenerator.classPath
         } catch (e: Exception) {
-            logger.println("✗ Failed to resolve $coordinates: ${e.message}")
+            Logger.println("✗ Failed to resolve $coordinates: ${e.message}")
             return ""
         }
     }
@@ -91,8 +89,8 @@ class MavenResolver(
         val sessionBuilder = SessionBuilderSupplier(repositorySystem)
             .get()
             .withLocalRepositoryBaseDirectories(buildDepsPath)
-            .setTransferListener(ConsoleTransferListener(logger))
-            .setRepositoryListener(ConsoleRepositoryListener(logger))
+            .setTransferListener(ConsoleTransferListener())
+            .setRepositoryListener(ConsoleRepositoryListener())
         val session = sessionBuilder.build()
 
         return session

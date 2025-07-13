@@ -3,6 +3,7 @@ package com.skommy.services
 import com.skommy.CompilerConstants
 import com.skommy.models.BuildSettings
 import com.skommy.resolver.MavenResolver
+import com.skommy.services.Logger
 import java.io.File
 
 /**
@@ -10,11 +11,10 @@ import java.io.File
  * Handles resolution, caching, and providing dependency information.
  */
 class DependencyService(
-    private val projectRoot: File = File(System.getProperty("user.dir")),
-    private val logger: LoggerService = LoggerProvider.get(),
+    private val projectRoot: File = File(System.getProperty("user.dir"))
 ) {
     private val dependenciesFile = File(projectRoot, "${CompilerConstants.buildFolder}/dependencies.txt")
-    private val mavenResolver = MavenResolver(projectRoot = projectRoot, logger = logger)
+    private val mavenResolver = MavenResolver(projectRoot = projectRoot)
 
     /**
      * Resolves all dependencies from build settings and saves them to cache file.
@@ -22,7 +22,7 @@ class DependencyService(
      * @return List of resolved JAR file paths
      */
     fun resolveAndCacheDependencies(settings: BuildSettings): List<String> {
-        logger.println("Resolving dependencies for ${settings.project.name}")
+        Logger.println("Resolving dependencies for ${settings.project.name}")
         if (settings.dependencies.isEmpty()) {
             return emptyList()
         }

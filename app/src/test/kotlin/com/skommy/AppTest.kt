@@ -6,7 +6,6 @@ package com.skommy
 import com.skommy.models.buildSettings
 import com.skommy.models.simpleScript
 import com.skommy.services.BuildService
-import com.skommy.services.LoggerService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -22,30 +21,11 @@ class AppTest {
 
     private lateinit var testDir: File
     private lateinit var buildService: BuildService
-    private lateinit var testLogger: LoggerService
 
     @BeforeEach
     fun setUp() {
         testDir = tempDir.toFile()
-        // Create a simple mock logger for testing
-        testLogger = object : LoggerService {
-            override fun println(message: String, err: Boolean) {
-                if (err) {
-                    System.err.println(message)
-                } else {
-                    System.out.println(message)
-                }
-            }
-
-            override fun print(message: String, err: Boolean) {
-                if (err) {
-                    System.err.print(message)
-                } else {
-                    System.out.print(message)
-                }
-            }
-        }
-        buildService = BuildService(testLogger)
+        buildService = BuildService()
     }
 
     @AfterEach
@@ -236,7 +216,7 @@ class AppTest {
         assertFalse(settingsDefault.kotlin.reflection, "Reflection should default to false")
 
         // Test DependencyService with default settings
-        val dependencyService = com.skommy.services.DependencyService(projectRoot = testDir, logger = testLogger)
+        val dependencyService = com.skommy.services.DependencyService(projectRoot = testDir)
         val classpathDefault = dependencyService.getCompilationClasspath(settingsDefault)
 
         // Should contain stdlib but not reflection

@@ -8,9 +8,7 @@ import kotlinx.serialization.encodeToString
 import java.io.File
 import java.nio.file.Files
 
-class BuildService(
-    private val logger: LoggerService = LoggerProvider.get()
-) {
+class BuildService() {
     /**
      * Saves BuildSettings to lizz.yaml in the specified project root directory.
      * @param settings The BuildSettings to save
@@ -20,7 +18,6 @@ class BuildService(
         val file = File(projectRoot, BuildConstants.CONFIG_FILE)
         val yamlText = Yaml.Companion.default.encodeToString(settings)
         file.writeText(yamlText)
-        logger.println("Yaml saved to ${file.absolutePath}")
     }
 
     /**
