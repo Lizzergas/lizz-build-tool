@@ -46,8 +46,10 @@ class GradleBuild(
                         appendLine("""    implementation(files("${settings.kotlin.kotlinHome}/lib/kotlin-reflect.jar"))""")
                     }
 
-                    // Add resolved dependencies
-                    resolvedJars.forEach { jar ->
+                    // Add resolved dependencies (filter out kotlin-stdlib to avoid duplicates)
+                    resolvedJars.filter { jar ->
+                        !jar.name.startsWith("kotlin-stdlib")
+                    }.forEach { jar ->
                         appendLine("""    implementation(files("${jar.absolutePath.replace("\\", "\\\\")}"))""")
                     }
 
