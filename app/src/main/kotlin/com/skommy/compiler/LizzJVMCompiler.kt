@@ -104,9 +104,82 @@ class LizzJVMCompiler(
         // For fat JAR, we don't need external classpath entries since everything is included
         // But we keep this for compatibility if someone wants to use external JARs
         val resolvedDeps = dependencyService.getCachedDependencies()
-        resolvedDeps.map { File(it).name }.forEach { classpaths.add(it) }
+        val resolvedDepNames = resolvedDeps.map { File(it).name }
 
-        return classpaths.joinToString(" ")
+        // Deduplicate dependencies to avoid conflicts (e.g., kotlin-stdlib from KOTLIN_HOME vs transitive)
+        val deduplicatedDeps = deduplicateJarNames(classpaths + resolvedDepNames)
+
+        return deduplicatedDeps.joinToString(" ")
+    }
+
+    /**
+     * Deduplicates JAR names by removing duplicates based on artifact base names.
+     * Prioritizes JARs that appear earlier in the list (e.g., KOTLIN_HOME over transitive dependencies).
+     * 
+     * @param jarNames List of JAR file names to deduplicate
+     * @return Deduplicated list of JAR names
+     */
+    private fun deduplicateJarNames(jarNames: List<String>): List<String> {
+        val seenArtifacts = mutableSetOf<String>()
+        val result = mutableListOf<String>()
+
+        for (jarName in jarNames) {
+            val artifactBaseName = extractArtifactBaseName(jarName)
+
+            if (!seenArtifacts.contains(artifactBaseName)) {
+                seenArtifacts.add(artifactBaseName)
+                result.add(jarName)
+            } else {
+                Logger.println("Skipping duplicate dependency: $jarName (already have $artifactBaseName)")
+            }
+        }
+
+        return result
+    }
+
+    /**
+     * Extracts the base artifact name from a JAR file name.
+     * Examples:
+     * - "kotlin-stdlib.jar" -> "kotlin-stdlib"
+     * - "kotlin-stdlib-2.1.21.jar" -> "kotlin-stdlib"
+     * - "gson-2.10.1.jar" -> "gson"
+     * 
+     * @param jarName The JAR file name
+     * @return The base artifact name without version and extension
+     */
+    private fun extractArtifactBaseName(jarName: String): String {
+        // Remove .jar extension
+        val nameWithoutExtension = jarName.removeSuffix(".jar")
+
+        // Find the last occurrence of a version pattern (number followed by dot or dash)
+        // This handles cases like "kotlin-stdlib-2.1.21" -> "kotlin-stdlib"
+        val versionPattern = Regex("-\\d+(\\.\\d+)*(-.*)?$")
+        return versionPattern.replace(nameWithoutExtension, "")
+    }
+
+    /**
+     * Deduplicates JAR files by removing duplicates based on artifact base names.
+     * Prioritizes JARs that appear earlier in the list (e.g., KOTLIN_HOME over transitive dependencies).
+     * 
+     * @param jarFiles List of JAR files to deduplicate
+     * @return Deduplicated list of JAR files
+     */
+    private fun deduplicateJarFiles(jarFiles: List<File>): List<File> {
+        val seenArtifacts = mutableSetOf<String>()
+        val result = mutableListOf<File>()
+
+        for (jarFile in jarFiles) {
+            val artifactBaseName = extractArtifactBaseName(jarFile.name)
+
+            if (!seenArtifacts.contains(artifactBaseName)) {
+                seenArtifacts.add(artifactBaseName)
+                result.add(jarFile)
+            } else {
+                Logger.println("Skipping duplicate dependency JAR: ${jarFile.name} (already have $artifactBaseName)")
+            }
+        }
+
+        return result
     }
 
     private fun createFatJar(jarFile: java.nio.file.Path, manifest: Manifest) {
@@ -131,15 +204,20 @@ class LizzJVMCompiler(
                         }
                 }
 
+                // Collect all dependency JARs and deduplicate them
+                val allDependencyJars = mutableListOf<File>()
+
                 // Add Kotlin standard library
                 val kotlinStdlib = File(CompilerConstants.getStdLib(settings))
                 if (kotlinStdlib.exists()) {
-                    addJarToFatJar(kotlinStdlib, jarOut, addedEntries)
+                    allDependencyJars.add(kotlinStdlib)
                 }
 
                 if (settings.kotlin.reflection) {
                     val reflection = File(CompilerConstants.getReflect(settings))
-                    addJarToFatJar(reflection, jarOut, addedEntries)
+                    if (reflection.exists()) {
+                        allDependencyJars.add(reflection)
+                    }
                 }
 
                 // Add all resolved dependencies
@@ -148,8 +226,16 @@ class LizzJVMCompiler(
                     .map { File(it) }
                     .filter { it.exists() && it.extension == "jar" }
                     .forEach { depJar ->
-                        addJarToFatJar(depJar, jarOut, addedEntries)
+                        allDependencyJars.add(depJar)
                     }
+
+                // Deduplicate JARs based on artifact base names (prioritizes earlier entries)
+                val deduplicatedJars = deduplicateJarFiles(allDependencyJars)
+
+                // Add deduplicated JARs to fat JAR
+                deduplicatedJars.forEach { depJar ->
+                    addJarToFatJar(depJar, jarOut, addedEntries)
+                }
             }
         }
 
